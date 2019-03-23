@@ -1,0 +1,3 @@
+- CLI puts stuff in local sqlite db, can sync to google docs or postgres
+- http json api fronting postgres
+- http/html UI fronting postgres
