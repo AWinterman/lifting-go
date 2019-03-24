@@ -8,7 +8,7 @@ import (
 )
 
 func TestSqlite(t *testing.T) {
-	storage, err := CreateStorage("test.db", nil)
+	storage, err := CreateStorage("test.sqlite", nil)
 	defer storage.Drop()
 	if err != nil {
 		t.Error(err)

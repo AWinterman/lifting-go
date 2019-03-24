@@ -1,5 +1,5 @@
-.sqlite
-.sql
+*.sqlite
+*.sql
 gin-bin
 lifting
 lift
