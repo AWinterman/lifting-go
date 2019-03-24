@@ -4,52 +4,7 @@
     <a href="/create/">add exercise</a>
     <section>
         <h2>history</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th><!-- id --></th>
-                    <th>category</th>
-                    <th>exercise</th>
-                    <th>session date</th>
-                    <th>valume</th>
-                    <th>unit</th>
-                    <th>duration</th>
-                    <th>effort</th>
-                    <th>weight</th>
-                    <th>failure</th>
-                    <th>comment</th>
-                    <th><!-- edit --></th>
-                    <th><!-- delete --></th>
-                    <th><!-- duplicate --></th>
-                </tr>
-            </thead>
-            <tbody>
-                {{range .History}} 
-                <tr>
-                <td>{{.ID}}</td>
-                <td> {{.Category}}</td>
-                <td>{{.Exercise}}</td>
-                <td>{{.SessionDate}}</td>
-                <td>{{.Volume}}</td>
-                <td>{{.Units}}</td>
-                <td>{{.Weight}}</td>
-                <td>{{.Elapsed}}</td>
-                <td>{{.Effort}}</td>
-                <td>{{.Failure}}</td>
-                <td>{{.Comment}}</td>
-                <td>
-                    <a href="/edit/{{.ID}}">edit</a>
-                </td>
-                <td>
-                    <a href="/delete/{{.ID}}">delete</a>
-                </td>
-                <td>
-                    <a href="/copy/{{.ID}}">copy</a>
-                </td>
-                </tr>
-                {{end}}
-            </tbody>
-        </table>
+        {{template "table" .}}
     </section>
 </main>
 {{ end }}

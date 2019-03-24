@@ -1,0 +1,22 @@
+{{ define "content" }}
+<main>
+    <h1> Delete record? </h1>
+    <p>this process is not reversible</p>
+                <div>id {{.ID}}</div>
+                <div>category {{.Category}}</div>
+                <div>exercise {{.Exercise}}</div>
+                <div>date {{.SessionDate}}</div>
+                <div>volume {{.Volume}}</div>
+                <div>units {{.Units}}</div>
+                <div>weight {{.Weight}}</div>
+                <div>elapsed {{.Elapsed}}</div>
+                <div>effort {{.Effort}}</div>
+                <div>failure {{.Failure}}</div>
+                <div>comment {{.Comment}}</div>
+                <form method="POST", submit="/delete/{{.ID}}">
+                    <button>delete</button>
+
+                </form>
+</main>
+{{end}}
+{{template "base" .}}

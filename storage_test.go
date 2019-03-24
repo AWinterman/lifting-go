@@ -127,6 +127,9 @@ func TestSqlite(t *testing.T) {
 
 	}
 
+	last[0].ID = nil
+	rep.ID = nil
+
 	if *rep != last[0] {
 		t.Fatal("mimsatch",
 			fmt.Sprintf("expected %#v", last[0]),

@@ -6,6 +6,7 @@ import (
 
 // Storage is an interface for the storage class
 type Storage interface {
+	Delete(id int) error
 	Load(repetitions []Repetition) error
 	GetLast(count, offset int) ([]Repetition, error)
 	GetByID(id int) (*Repetition, error)

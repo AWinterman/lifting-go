@@ -11,7 +11,6 @@ html {
 body {
   font-size: 1.8rem;
   line-height: 1.618;
-  max-width: 38em;
   margin: auto;
   color: #4a4a4a;
   background-color: #f9f9f9;
@@ -104,9 +103,10 @@ pre > code {
 
 /* Tables */
 table {
-  text-align: justify;
+  /* text-align: justify; */
   width: 100%;
-  border-collapse: collapse; }
+  border-collapse: collapse; 
+}
 
 td, th {
   padding: 0.5em;

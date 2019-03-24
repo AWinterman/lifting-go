@@ -5,7 +5,7 @@
         {{ end }}>
         <div class="row">
             <section class="column">
-                <input disabled name=ID type=number {{ if .Repetition}}value="{{.Repetition.ID}}"{{end}}>
+                <input class="hidden" disabled name=ID type=number {{ if .Repetition}}value="{{.Repetition.ID}}"{{end}}>
                 <label>
                     <div class="left">category</div>
                     <input required name="Category" type="text" list="category-suggestions-list" placeholder="strength"
@@ -58,7 +58,7 @@
 
                 <label>
                     <div class="left">unit</div>
-                    <input type="string" placeholder="lbs" name="Unit" list="unit-suggestions-list" {{ if .Repetition }}
+                    <input type="string" placeholder="lbs" name="Units" list="unit-suggestions-list" {{ if .Repetition }}
                         {{ if .Repetition.Units }}value="{{.Repetition.Units }}" {{ end }} {{ end }}>
                     <div class="guiding-options-list">
                         <em>previous choices</em>
@@ -74,13 +74,13 @@
                 <label>
                     <div class="left">duration</div>
                     <div class="right">
-                        <input class="small" name='DurationHour' type='number' {{ if .Repetition }}
+                        <input class="small" placeholder="hour" name='DurationHour' type='number' {{ if .Repetition }}
                             {{ if .Repetition.Elapsed }}value="{{.Repetition.Elapsed.Hour }}" {{ end }} {{ end }}
                             min='0' max='24'>:
-                        <input class="small" name='DurationMinute' type='number' {{ if .Repetition }}
+                        <input class="small" placeholder="minute"  name='DurationMinute' type='number' {{ if .Repetition }}
                             {{ if .Repetition.Elapsed }}value="{{.Repetition.Elapsed.Minute }}" {{ end }} {{ end }}
                             min='0' max='59'>:
-                        <input class="small" name='DurationSecond' type='number' {{ if .Repetition }}
+                        <input class="small" placeholder="second" name='DurationSecond' type='number' {{ if .Repetition }}
                             {{ if .Repetition.Elapsed }}value="{{.Repetition.Elapsed.Second }}" {{ end }} {{ end }}
                             min='0' max='59'>
                     </div>
@@ -96,17 +96,6 @@
                 </label>
 
                 <label>
-                    <div class="left">sets</div>
-                    <div class="right">
-                        <input name="Sets" type="number" {{ if .Repetition }}
-                            {{ if .Repetition.Effort }}value="{{.Repetition.Effort }}" {{ end }} {{ end }} placeholder=5
-                            min=0 max=10 step=1>
-                        <span></span>
-                    </div>
-                </label>
-
-
-                <label>
                     <div class="left">failure</div>
                     <input type="checkbox" name="Failure" />
                 </label>
@@ -114,7 +103,7 @@
             <section class="row">
                 <label>
                     <div class="left">comment</div>
-                    <textarea name="Comment"></textarea>
+                    <textarea name="Comment">{{if .Repetition}} {{.Repetition.Comment}}{{end}}</textarea>
                 </label>
             </section>
         </div>
@@ -142,7 +131,7 @@
 
         <div class="row">
             <div class="left"></div>
-            <button>submit</button>
+            <button class="big-submit">submit</button>
         </div>
     </form>
 

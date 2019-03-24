@@ -35,6 +35,7 @@ const (
 			)`
 
 	//
+	namedDelete = `DELETE FROM workout WHERE id = :id`
 	namedUpdate = `UPDATE workout
 			SET exercise = :exercise,
 				effort = :effort,
@@ -156,6 +157,27 @@ func (s *SqliteStorage) Load(repetitions []Repetition) error {
 			return err
 		}
 	}
+	return tx.Commit()
+}
+
+// Delete removes the corresponding database row
+func (s *SqliteStorage) Delete(id int) error {
+	tx, err := s.db.Beginx()
+	if err != nil {
+		return err
+	}
+
+	workout := WorkoutRow{ID: &id}
+
+	_, err = tx.NamedExec(
+		namedDelete,
+		workout,
+	)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
 	return tx.Commit()
 }
 

@@ -97,7 +97,6 @@ func repetitionToWorkout(r Repetition) WorkoutRow {
 
 	if r.Comment != "" {
 		comment = sql.NullString{String: r.Comment, Valid: true}
-
 	}
 
 	return WorkoutRow{
