@@ -1,3 +1,3 @@
 - CLI puts stuff in local sqlite db, can sync to google docs or postgres
-- http json api fronting postgres
-- http/html UI fronting postgres
+- Long term each user gets their own sqlite, and there's a user model which remembers where that file is
+- if you want to look at somebody else's progress, they grant you access
