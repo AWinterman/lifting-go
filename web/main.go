@@ -63,9 +63,8 @@ func main() {
 	mux.HandleFunc("/", handlers.handle)
 
 	port := ":9000"
-	log.Printf("Listening http://localhost %v", port)
+	log.Printf("Listening http://localhost:%v", port)
 	http.ListenAndServe(port, mux)
-
 }
 
 type handlerFunc func(w http.ResponseWriter, r *http.Request)
@@ -82,7 +81,6 @@ func (h *Handlers) handle(w http.ResponseWriter, r *http.Request) {
 
 	switch {
 	case path == "/" || path == "":
-		log.Println("matched index handler")
 		if r.Method != "GET" {
 			h.handleErrors(w, r, fmt.Errorf("Unexpected method"), http.StatusMethodNotAllowed)
 		}
@@ -124,13 +122,11 @@ func (h *Handlers) getRep(id string) (*lifting.Repetition, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Println("found", repetition)
 	return repetition, nil
 }
 
 func (h *Handlers) handleEdit(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
-	log.Println("matched edit handle", path)
 	matches := edit.FindStringSubmatch(path)
 
 	repetition, err := h.getRep(matches[1])
@@ -162,7 +158,6 @@ func (h *Handlers) getContext() (*Context, error) {
 	}
 
 	categories, err := h.Storage.GetUniqueCategories()
-	log.Printf("categories: %v", categories)
 
 	if err != nil {
 		return nil, err
@@ -188,13 +183,12 @@ func (h *Handlers) getContext() (*Context, error) {
 }
 
 func (h *Handlers) handleCreateGet(w http.ResponseWriter, r *http.Request) {
-		log.Println("matched create handler")
-		context, err := h.getContext()
-		if err != nil {
-			h.handleErrors(w, r, err, http.StatusInternalServerError)
-			return
-		}
-		h.contextHandler(w, r, context, "form.html")
+	context, err := h.getContext()
+	if err != nil {
+		h.handleErrors(w, r, err, http.StatusInternalServerError)
+		return
+	}
+	h.contextHandler(w, r, context, "form.html")
 }
 
 func (h *Handlers) handleCreatePost(w http.ResponseWriter, r *http.Request, repetition *lifting.Repetition) {
@@ -221,8 +215,6 @@ func (h *Handlers) handleCreatePost(w http.ResponseWriter, r *http.Request, repe
 		match := func(expected string) bool {
 			return key == expected && len(value) > 0 && len(value[0]) > 0
 		}
-
-		log.Println(key, value)
 
 		switch {
 		case match(category):
@@ -290,7 +282,6 @@ func (h *Handlers) contextHandler(w http.ResponseWriter, r *http.Request, contex
 }
 
 func (h *Handlers) handleErrors(w http.ResponseWriter, r *http.Request, err error, code int) {
-	panic(err)
 	log.Printf("returning error response because %v", fmt.Errorf(err.Error()))
 	http.Error(w, err.Error(), code)
 	return
