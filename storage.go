@@ -1,6 +1,8 @@
 package lifting
 
 import (
+	"fmt"
+
 	"cloud.google.com/go/civil"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/mattn/go-sqlite3" // how they told me to do it i guess
@@ -18,7 +20,8 @@ const (
                session_date date NOT NULL,
                failure boolean default false,
                units str NOT NULL,
-               category text
+			   category text,
+			   comment text
             );
         `
 
@@ -26,28 +29,45 @@ const (
             DROP TABLE IF EXISTS workout;
         `
 	namedInsert = `INSERT INTO workout(
-            exercise, effort, volume, weight, duration, session_date, units, failure, category
+            exercise, effort, volume, weight, duration, session_date, units, failure, category, comment
             ) values (
-            :exercise, :effort, :volume, :weight, :duration, :session_date, :units, :failure, :category
-            )`
+            :exercise, :effort, :volume, :weight, :duration, :session_date, :units, :failure, :category, :comment
+			)`
+
+	//
+	namedUpdate = `UPDATE workout
+			SET exercise = :exercise,
+				effort = :effort,
+				volume = :volume,
+				 weight = :weight, 
+				 duration = :duration, 
+				 session_date = :session_date, 
+				 units = :units, 
+				 failure = :failure, 
+				 category = :category,
+				 comment = :comment
+			WHERE
+				id = :id
+
+            `
 
 	uniquecategory = `SELECT DISTINCT category FROM workout`
 	uniqueExercise = `SELECT DISTINCT exercise FROM workout`
-	uniqueUnits = `SELECT DISTINCT units FROM workout WHERE units != ""`
+	uniqueUnits    = `SELECT DISTINCT units FROM workout WHERE units != ""`
 
 	getlast = `
             SELECT 
-            id, exercise, effort, volume, weight, duration, session_date, units, failure, category
+            id, exercise, effort, volume, weight, duration, session_date, units, failure, category, comment
             FROM workout 
             ORDER BY session_date desc, id desc LIMIT ? OFFSET ?`
 	getBetween = `
             SELECT 
-            id, exercise, effort, volume, weight, duration, session_date, units, failure, category
+            id, exercise, effort, volume, weight, duration, session_date, units, failure, category, comment
             FROM workout WHERE session_date BETWEEN ? and ? 
             ORDER BY session_date DESC, id DESC`
 	getByID = `
             SELECT 
-            id, exercise, effort, volume, weight, duration, session_date, units, failure, category
+            id, exercise, effort, volume, weight, duration, session_date, units, failure, category, comment
             FROM workout WHERE id = ?`
 	getByCategory = `
 			WITH vars AS (SELECT :category as category)
@@ -117,11 +137,20 @@ func (s *SqliteStorage) Load(repetitions []Repetition) error {
 
 	for _, rep := range repetitions {
 		workout := repetitionToWorkout(rep)
+		var err error
 
-		_, err := tx.NamedExec(
-			namedInsert,
-			&workout,
-		)
+		if workout.ID == nil {
+			_, err = tx.NamedExec(
+				namedInsert,
+				&workout,
+			)
+		} else {
+			_, err = tx.NamedExec(
+				namedUpdate,
+				&workout,
+			)
+
+		}
 		if err != nil {
 			tx.Rollback()
 			return err
@@ -194,7 +223,6 @@ func (s *SqliteStorage) GetUniqueUnits() ([]string, error) {
 	return categorys, nil
 }
 
-
 //GetUniqueExercises retrieves what Exercises have been input
 func (s *SqliteStorage) GetUniqueExercises() ([]string, error) {
 	r := make([]string, 0)
@@ -205,8 +233,6 @@ func (s *SqliteStorage) GetUniqueExercises() ([]string, error) {
 	return r, nil
 }
 
-
-
 //GetByCategory retrieves reps in a given category
 func (s *SqliteStorage) GetByCategory(category string, count, offset int) ([]Repetition, error) {
 	return s.getCollectionWithStruct(getByCategory, CategoryQuery{
@@ -214,25 +240,31 @@ func (s *SqliteStorage) GetByCategory(category string, count, offset int) ([]Rep
 	})
 }
 
-
-//GetLast retrieves data in order
+// GetLast retrieves data in order
 func (s *SqliteStorage) GetLast(count, offset int) ([]Repetition, error) {
 	return s.getCollection(getlast, count, offset)
 }
 
-//GetByID finds a particular repetition
-func (s *SqliteStorage) GetByID(id int) (Repetition, error) {
-	var r Repetition
-	w := WorkoutRow{}
-	err := s.db.Select(&w, getByID, id)
+// GetByID finds a particular repetition
+func (s *SqliteStorage) GetByID(id int) (*Repetition, error) {
+	reps, err := s.getCollection(getByID, id)
+
 	if err != nil {
-		return r, err
+		return nil, err
 	}
-	r, err = workoutToRepetition(w)
-	return r, err
+
+	if len(reps) == 0 {
+		return nil, nil
+	}
+
+	if len(reps) > 1 {
+		return nil, fmt.Errorf("Multiple return values for SqliteStorage#GetByID, %v", reps)
+	}
+
+	return &reps[0], nil
 }
 
-
+// GetBetween returns the reps between the start and end date.
 func (s *SqliteStorage) GetBetween(start, end civil.Date) ([]Repetition, error) {
 	return s.getCollection(getBetween, start, end)
 }

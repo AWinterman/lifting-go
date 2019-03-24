@@ -11,7 +11,7 @@ type (
 	// we store like this so we can easily represent failure on a given set, and so
 	// we have the flexibility to represent whatever you might do with our body.
 	Repetition struct {
-		ID int
+		ID *int
 		// exercise represents whatever exercise you completed
 		Exercise string
 		// What day did you do the activity?
@@ -34,26 +34,29 @@ type (
 		// If non zero, this object indicates sets of the above specifications
 		// were performed.
 		Sets int
+		// anything about the specific workout not captured in other parameters
+		Comment string
 	}
 
 	// WorkoutRow represents The SQL database format for the Repetition
 	WorkoutRow struct {
-		ID          int
+		ID          *int
 		Exercise    string
 		Effort      sql.NullInt64
 		Volume      sql.NullFloat64
 		Weight      sql.NullInt64
-		Category       sql.NullString
+		Category    sql.NullString
 		Elapsed     sql.NullString `db:"duration"`
 		SessionDate string         `db:"session_date"`
 		Units       string
 		Failure     bool
+		Comment     sql.NullString
 		Sets        int
 	}
 
 	// CategoryQuery represents how we pull by category out of the database
 	CategoryQuery struct {
-		Category         string
+		Category      string
 		Count, Offset int
 	}
 )
@@ -64,7 +67,7 @@ func ParseSessionDateString(date string) (civil.Date, error) {
 	asTime, e := time.Parse(time.RFC3339, date)
 	if e == nil {
 		return civil.DateOf(asTime), e
-	} 
+	}
 	return civil.ParseDate(date)
 }
 
@@ -74,6 +77,7 @@ func repetitionToWorkout(r Repetition) WorkoutRow {
 	weight := sql.NullInt64{Valid: false}
 	Category := sql.NullString{Valid: false}
 	elapsed := sql.NullString{Valid: false}
+	comment := sql.NullString{Valid: false}
 	if r.Effort != 0 {
 		effort = sql.NullInt64{Int64: int64(r.Effort), Valid: true}
 	}
@@ -91,6 +95,11 @@ func repetitionToWorkout(r Repetition) WorkoutRow {
 		elapsed = sql.NullString{String: r.Elapsed.String(), Valid: true}
 	}
 
+	if r.Comment != "" {
+		comment = sql.NullString{String: r.Comment, Valid: true}
+
+	}
+
 	return WorkoutRow{
 		ID:          r.ID,
 		Exercise:    r.Exercise,
@@ -101,8 +110,9 @@ func repetitionToWorkout(r Repetition) WorkoutRow {
 		SessionDate: r.SessionDate.String(),
 		Units:       r.Units,
 		Failure:     r.Failure,
-		Category:       Category,
+		Category:    Category,
 		Sets:        r.Sets,
+		Comment:     comment,
 	}
 }
 
@@ -114,8 +124,9 @@ func workoutToRepetition(w WorkoutRow) (Repetition, error) {
 		weight      int
 		sessionDate civil.Date
 		elapsed     civil.Time
-		Category       string
+		Category    string
 		err         error
+		comment     string
 	)
 
 	sessionDate, err = ParseSessionDateString(w.SessionDate)
@@ -146,6 +157,10 @@ func workoutToRepetition(w WorkoutRow) (Repetition, error) {
 		}
 	}
 
+	if w.Comment.Valid {
+		comment = w.Comment.String
+	}
+
 	rep = Repetition{
 		ID:          w.ID,
 		Exercise:    w.Exercise,
@@ -156,8 +171,9 @@ func workoutToRepetition(w WorkoutRow) (Repetition, error) {
 		SessionDate: sessionDate,
 		Units:       w.Units,
 		Failure:     w.Failure,
-		Category:       Category,
+		Category:    Category,
 		Sets:        w.Sets,
+		Comment:     comment,
 	}
 	return rep, nil
 }

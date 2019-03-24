@@ -1,135 +1,151 @@
 {{ define "content" }}
+<main>
 
-<form {{ if .Repetition }}method="PUT" submit="/edit/{{.Repetition.ID}}"{{ else }}submit="/create/" method="POST" {{ end }}>
-    <label>
-        <div class="left">category</div>
-        <input
-			required
-            name="Category"
-            type="text"
-            list="category-suggestions-list"
-            placeholder="strength"
-			{{ if .Repetition }}value="{{.Repetition.Category }}"{{ end }}
-        >
-        <span ></span>
-        <div class="guiding-options-list">
-            <em>previous choices</em>
-            <ul>
+    <form method="POST" {{ if .Repetition }}submit="/edit/{{.Repetition.ID}}" {{ else }}submit="/create/" 
+        {{ end }}>
+        <div class="row">
+            <section class="column">
+                <input disabled name=ID type=number {{ if .Repetition}}value="{{.Repetition.ID}}"{{end}}>
+                <label>
+                    <div class="left">category</div>
+                    <input required name="Category" type="text" list="category-suggestions-list" placeholder="strength"
+                        {{ if .Repetition }}value="{{.Repetition.Category }}" {{ end }}>
+                    <span></span>
+                    <div class="guiding-options-list">
+                        <em>previous choices</em>
+                        <ul>
+                            {{ range .Categories }}
+                            <li>{{.}}</li>
+                            {{end}}
+                        </ul>
+                    </div>
+                </label>
+
+                <label>
+                    <div class="left">session date</div>
+                    <input name="SessionDate" required type="date"
+                        value="{{ if .Repetition }}{{.Repetition.SessionDate.String }}{{ else }}{{ .Now }}{{ end }}">
+                    <span></span>
+                </label>
+
+                <label>
+                    <div class="left">exercise</div>
+                    <input required name="Exercise" type="text" list="exercise-suggestions-list" placeholder="squats"
+                        {{ if .Repetition }}value="{{.Repetition.Exercise}}" {{ end }}>
+                    <span></span>
+                    <div class="guiding-options-list">
+                        <em>previous choices</em>
+                        <ul>
+                            {{ range .Exercises }}
+                            <li>{{.}}</li>
+                            {{end}}
+                        </ul>
+                    </div>
+                </label>
+                <label>
+                    <div class="left">volume</div>
+                    <input type="number" min="0" placeholder="5" name="Volume" {{ if .Repetition }}
+                        {{ if .Repetition.Volume }}value="{{.Repetition.Volume }}" {{ end }} {{ end }}>
+                    <span></span>
+                </label>
+
+                <label>
+                    <div class="left">weight</div>
+                    <input type="number" name="Weight" min=0 step=5 placeholder=135 {{ if .Repetition }}
+                        {{ if .Repetition.Weight }}value="{{.Repetition.Weight }}" {{ end }} {{ end }}>
+                    <span></span>
+                </label>
+
+                <label>
+                    <div class="left">unit</div>
+                    <input type="string" placeholder="lbs" name="Unit" list="unit-suggestions-list" {{ if .Repetition }}
+                        {{ if .Repetition.Units }}value="{{.Repetition.Units }}" {{ end }} {{ end }}>
+                    <div class="guiding-options-list">
+                        <em>previous choices</em>
+                        <ul>
+                            {{ range .Units }}
+                            <li>{{.}}</li>
+                            {{end}}
+                        </ul>
+                    </div>
+                    <span></span>
+                </label>
+
+                <label>
+                    <div class="left">duration</div>
+                    <div class="right">
+                        <input class="small" name='DurationHour' type='number' {{ if .Repetition }}
+                            {{ if .Repetition.Elapsed }}value="{{.Repetition.Elapsed.Hour }}" {{ end }} {{ end }}
+                            min='0' max='24'>:
+                        <input class="small" name='DurationMinute' type='number' {{ if .Repetition }}
+                            {{ if .Repetition.Elapsed }}value="{{.Repetition.Elapsed.Minute }}" {{ end }} {{ end }}
+                            min='0' max='59'>:
+                        <input class="small" name='DurationSecond' type='number' {{ if .Repetition }}
+                            {{ if .Repetition.Elapsed }}value="{{.Repetition.Elapsed.Second }}" {{ end }} {{ end }}
+                            min='0' max='59'>
+                    </div>
+                </label>
+                <label>
+                    <div class="left">effort</div>
+                    <div class="right">
+                        <input name="Effort" type="number" {{ if .Repetition }}
+                            {{ if .Repetition.Effort }}value="{{.Repetition.Effort }}" {{ end }} {{ end }} placeholder=5
+                            min=0 max=10 step=1>
+                        <span></span>
+                    </div>
+                </label>
+
+                <label>
+                    <div class="left">sets</div>
+                    <div class="right">
+                        <input name="Sets" type="number" {{ if .Repetition }}
+                            {{ if .Repetition.Effort }}value="{{.Repetition.Effort }}" {{ end }} {{ end }} placeholder=5
+                            min=0 max=10 step=1>
+                        <span></span>
+                    </div>
+                </label>
+
+
+                <label>
+                    <div class="left">failure</div>
+                    <input type="checkbox" name="Failure" />
+                </label>
+            </section>
+            <section class="row">
+                <label>
+                    <div class="left">comment</div>
+                    <textarea name="Comment"></textarea>
+                </label>
+            </section>
+        </div>
+
+        <!-- a pair of suggestion lists for some of the other options-->
+
+        <datalist id="category-suggestions-list">
             {{ range .Categories }}
-            <li>{{.}}</li>
+            <option>{{.}}</option>
             {{end}}
-            </ul>
-        </div>
-    </label>
+        </datalist>
 
-    <label>
-        <div class="left">session date</div>
-        <input name="SessionDate" required type="date" value="{{ if .Repetition }}{{.Repetition.SessionDate.String }}{{ else }}{{ .Now }}{{ end }}">
-        <span ></span>
-    </label>
-
-    <label>
-        <div class="left">exercise</div>
-        <input 
-            required
-            name="Exercise"
-            type="text"
-            list="exercise-suggestions-list"
-            placeholder="squats"
-			{{ if .Repetition }}value="{{.Repetition.Exercise}}"{{ end }}
-		>
-        <span ></span>
-        <div class="guiding-options-list">
-            <em>previous choices</em>
-            <ul>
-            {{ range .Exercises }}
-            <li>{{.}}</li>
-            {{end}}
-            </ul>
-        </div>
-    </label>
-
-    <label>
-        <div class="left">volume</div>
-        <input type="number" min="0" placeholder="5" name="Volume"
-		{{ if .Repetition }} {{ if .Repetition.Volume }}value="{{.Repetition.Volume }}" {{ end }} {{ end }}
-        >
-        <span ></span>
-    </label>
-
-    <label>
-        <div class="left">weight</div>
-        <input type="number" name="Weight" min=0 step=5 placeholder=135
-                {{ if .Repetition }} {{ if .Repetition.Weight }}value="{{.Repetition.Weight }}" {{ end }} {{ end }}
-        >
-        <span ></span>
-    </label>
-
-    <label>
-        <div class="left">unit</div>
-        <input type="string" placeholder="lbs" name="Unit" list="unit-suggestions-list"
-        {{ if .Repetition }} {{ if .Repetition.Units }}value="{{.Repetition.Units }}" {{ end }} {{ end }}
-        >
-        <div class="guiding-options-list">
-            <em>previous choices</em>
-            <ul>
+        <datalist id="unit-suggestions-list">
             {{ range .Units }}
-            <li>{{.}}</li>
+            <option>{{.}}</option>
             {{end}}
-            </ul>
+        </datalist>
+
+        <datalist id="exercise-suggestions-list">
+            {{ range .Exercises }}
+            <option>{{.}}</option>
+            {{end}}
+        </datalist>
+
+
+        <div class="row">
+            <div class="left"></div>
+            <button>submit</button>
         </div>
-        <span ></span>
-    </label>
+    </form>
 
-    <label> 
-      <div class="left">duration</div>
-      <div class="right">
-          <input class="small" name='DurationHour' type='number' {{ if .Repetition }} {{ if .Repetition.Elapsed }}value="{{.Repetition.Elapsed.Hour }}" {{ end }} {{ end }} min='0' max='24'>:
-          <input class="small" name='DurationMinute' type='number' {{ if .Repetition }} {{ if .Repetition.Elapsed }}value="{{.Repetition.Elapsed.Minute }}" {{ end }} {{ end }} min='0' max='59'>:
-          <input class="small" name='DurationSecond' type='number' {{ if .Repetition }} {{ if .Repetition.Elapsed }}value="{{.Repetition.Elapsed.Second }}" {{ end }} {{ end }} min='0' max='59'>
-      </div>
-    </label>
-
-    <label>
-        <div class="left">effort</div>
-        <div class="right">
-            <input name="Effort" type="number" 
-                {{ if .Repetition }} {{ if .Repetition.Effort }}value="{{.Repetition.Effort }}" {{ end }} {{ end }}
-                placeholder=5 min=0 max=10 step=1>
-            <span ></span>
-        </div>
-    </label>
-
-
-    <label>
-        <div class="left">failure</div>
-        <input type="checkbox" name="failure"/>
-    </label>
-
-    <!-- a pair of suggestion lists for some of the other options-->
-
-    <datalist id="category-suggestions-list">
-        {{ range .Categories }}
-        <option>{{.}}</option>
-        {{end}}
-    </datalist>
-
-    <datalist id="unit-suggestions-list">
-        {{ range .Units }}
-        <option>{{.}}</option>
-        {{end}}
-    </datalist>
-
-    <datalist id="exercise-suggestions-list">
-        {{ range .Exercises }}
-        <option>{{.}}</option>
-        {{end}}
-    </datalist>
-
-	
-    <div class="left"></div>
-    <button>submit</button>
-</form>
-
-{{end}}
-{{template "base" .}}
+    {{end}}
+    {{template "base" .}}
+</main>

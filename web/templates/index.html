@@ -1,6 +1,7 @@
 {{ define "content" }}
 <main>
     <h1>lifting</h1>
+    <a href="/create/">add exercise</a>
     <section>
         <h2>history</h2>
         <table>
@@ -16,8 +17,10 @@
                     <th>effort</th>
                     <th>weight</th>
                     <th>failure</th>
+                    <th>comment</th>
                     <th><!-- edit --></th>
                     <th><!-- delete --></th>
+                    <th><!-- duplicate --></th>
                 </tr>
             </thead>
             <tbody>
@@ -33,11 +36,15 @@
                 <td>{{.Elapsed}}</td>
                 <td>{{.Effort}}</td>
                 <td>{{.Failure}}</td>
+                <td>{{.Comment}}</td>
                 <td>
                     <a href="/edit/{{.ID}}">edit</a>
                 </td>
                 <td>
                     <a href="/delete/{{.ID}}">delete</a>
+                </td>
+                <td>
+                    <a href="/copy/{{.ID}}">copy</a>
                 </td>
                 </tr>
                 {{end}}

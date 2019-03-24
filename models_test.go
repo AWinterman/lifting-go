@@ -16,7 +16,7 @@ func TestConversion(t *testing.T) {
 		SessionDate: civil.Date{Year: 2018, Month: 12, Day: 26},
 		Units:       "lbs",
 		Failure:     false,
-		Category:       "strength",
+		Category:    "strength",
 	}
 
 	expected := WorkoutRow{
@@ -27,7 +27,7 @@ func TestConversion(t *testing.T) {
 		SessionDate: "2018-12-26",
 		Units:       "lbs",
 		Failure:     false,
-		Category:       sql.NullString{String: "strength", Valid: true},
+		Category:    sql.NullString{String: "strength", Valid: true},
 	}
 
 	workout := repetitionToWorkout(r)
