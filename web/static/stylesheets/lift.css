@@ -55,6 +55,11 @@ button.big-submit {
 	width: 15em;
 }
 
+.date-table:nth-child(odd) {
+  background-color: #f1f1f1
+
+}
+
 
 .row {
   display: flex;
@@ -74,6 +79,10 @@ button.big-submit {
   display: flex;
   flex-direction: column;
   flex-basis: 100%;
+}
+
+.copy-button {
+  margin-top: 16px
 }
 
 @media screen and (min-width: 800px) {

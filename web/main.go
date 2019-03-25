@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/awinterman/lifting"
-	"github.com/awinterman/lifting/web"
 )
 
 func main() {
@@ -16,11 +15,11 @@ func main() {
 	}
 
 	mux := http.NewServeMux()
-	fs := http.FileServer(http.Dir("static/"))
+	fs := http.FileServer(http.Dir("./static/"))
 
-	handlers := web.Handlers{Storage: storage, Step: 10}
+	handlers := lifting.Handlers{Storage: storage, Step: 10}
 
-	mux.Handle("../stylesheets/", fs)
+	mux.Handle("/stylesheets/", fs)
 	mux.HandleFunc("/", handlers.Handle)
 
 	port := ":9000"

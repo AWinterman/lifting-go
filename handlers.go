@@ -1,4 +1,4 @@
-package web
+package lifting
 
 import (
 	"fmt"
@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"cloud.google.com/go/civil"
-	"github.com/awinterman/lifting"
 )
 
 func now() string {
@@ -46,12 +45,12 @@ func (p *Page) Previous() Page {
 
 // Context is basic context for the site.
 type Context struct {
-	History      []lifting.Repetition
-	Group        map[civil.Date]map[string][]lifting.Repetition
+	History      []Repetition
+	Group        []Group
 	Categories   []string
 	Exercises    []string
 	Units        []string
-	Repetition   *lifting.Repetition
+	Repetition   *Repetition
 	Now          string
 	Message      string
 	Next         Page
@@ -125,7 +124,7 @@ const (
 
 // Handlers is all the http handlers
 type Handlers struct {
-	Storage lifting.Storage
+	Storage Storage
 	Step    int
 }
 
@@ -160,7 +159,7 @@ func (h *Handlers) Handle(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *Handlers) getRep(id string) (*lifting.Repetition, error) {
+func (h *Handlers) getRep(id string) (*Repetition, error) {
 	ID, err := strconv.Atoi(id)
 	if err != nil {
 		return nil, err
@@ -367,12 +366,12 @@ func (h *Handlers) handleCreateGet(w http.ResponseWriter, r *http.Request) {
 	h.contextHandler(w, r, context, "form.html")
 }
 
-func (h *Handlers) handleCreatePost(w http.ResponseWriter, r *http.Request, existing *lifting.Repetition) {
+func (h *Handlers) handleCreatePost(w http.ResponseWriter, r *http.Request, existing *Repetition) {
 	var (
 		err error
 	)
 
-	repetition := &lifting.Repetition{}
+	repetition := &Repetition{}
 	if existing != nil {
 		repetition = existing
 	}
@@ -399,7 +398,9 @@ func (h *Handlers) handleCreatePost(w http.ResponseWriter, r *http.Request, exis
 			case (exercise):
 				repetition.Exercise = value[0]
 			case (volume):
-				repetition.Volume, err = strconv.ParseFloat(value[0], 64)
+				if len(value[0]) > 0 {
+					repetition.Volume, err = strconv.ParseFloat(value[0], 64)
+				}
 			case (weight):
 				repetition.Weight, err = parseInt(value[0])
 			case (hour):
@@ -434,7 +435,7 @@ func (h *Handlers) handleCreatePost(w http.ResponseWriter, r *http.Request, exis
 		}
 	}
 
-	reps := make([]lifting.Repetition, 1)
+	reps := make([]Repetition, 1)
 	reps[0] = *repetition
 	err = h.Storage.Load(reps)
 
