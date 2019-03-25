@@ -1,4 +1,4 @@
-package main
+package web
 
 import (
 	"fmt"
@@ -24,6 +24,7 @@ type Page struct {
 	Count  int
 }
 
+// Next returns the query for the next page of results
 func (p *Page) Next() Page {
 	return Page{
 		Offset: p.Offset + p.Count,
@@ -31,6 +32,7 @@ func (p *Page) Next() Page {
 	}
 }
 
+// Previous returns the query for the previous page of results
 func (p *Page) Previous() Page {
 	offset := p.Offset - p.Count
 	if offset < 0 {
@@ -44,17 +46,18 @@ func (p *Page) Previous() Page {
 
 // Context is basic context for the site.
 type Context struct {
-	History    []lifting.Repetition
-	Categories []string
-	Exercises  []string
-	Units      []string
-	Repetition *lifting.Repetition
-	Now        string
-	Message    string
-	Next       Page
-	Previous       Page
-	Current       Page
-	CanGoLater bool
+	History      []lifting.Repetition
+	Group        map[civil.Date]map[string][]lifting.Repetition
+	Categories   []string
+	Exercises    []string
+	Units        []string
+	Repetition   *lifting.Repetition
+	Now          string
+	Message      string
+	Next         Page
+	Previous     Page
+	Current      Page
+	CanGoLater   bool
 	CanGoEarlier bool
 }
 
@@ -79,22 +82,22 @@ func (h *Handlers) getContext(page Page) (*Context, error) {
 		return nil, err
 	}
 
-
 	if err != nil {
 		return nil, err
 	}
 
 	return &Context{
-		History:    reps,
-		Categories: categories,
-		Exercises:  exercises,
-		Repetition: nil,
-		Now:        now(),
-		Units:      units,
-		Next:       page.Next(),
-		Previous:       page.Previous(),
-		Current: page,
-		CanGoLater: page.Offset > 0,
+		History:      reps,
+		Group:        group(reps),
+		Categories:   categories,
+		Exercises:    exercises,
+		Repetition:   nil,
+		Now:          now(),
+		Units:        units,
+		Next:         page.Next(),
+		Previous:     page.Previous(),
+		Current:      page,
+		CanGoLater:   page.Offset > 0,
 		CanGoEarlier: len(reps) == page.Count,
 	}, nil
 }
@@ -123,10 +126,11 @@ const (
 // Handlers is all the http handlers
 type Handlers struct {
 	Storage lifting.Storage
-	step    int
+	Step    int
 }
 
-func (h *Handlers) handle(w http.ResponseWriter, r *http.Request) {
+// Handle is the root handler
+func (h *Handlers) Handle(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "Text/HTML")
 	path := r.URL.Path
 
@@ -178,7 +182,7 @@ func (h *Handlers) handleErrors(w http.ResponseWriter, r *http.Request, err erro
 func (h *Handlers) contextHandler(w http.ResponseWriter, r *http.Request, context interface{}, t string) {
 	templates, err := template.ParseFiles(
 		fmt.Sprintf("templates/%s", t),
-		"templates/table.html",
+		"templates/by-date-and-category.html",
 		"templates/base.html",
 	)
 
@@ -196,11 +200,9 @@ func (h *Handlers) contextHandler(w http.ResponseWriter, r *http.Request, contex
 	return
 }
 
-
-
 func (h *Handlers) getPage(r *http.Request) (Page, error) {
 	var err error
-	page := Page{Count: h.step, Offset: 0}
+	page := Page{Count: h.Step, Offset: 0}
 
 	query := r.URL.Query()
 

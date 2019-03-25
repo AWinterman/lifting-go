@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/awinterman/lifting"
+	"github.com/awinterman/lifting/web"
 )
 
 func main() {
@@ -17,10 +18,10 @@ func main() {
 	mux := http.NewServeMux()
 	fs := http.FileServer(http.Dir("static/"))
 
-	handlers := Handlers{Storage: storage, step: 10}
+	handlers := web.Handlers{Storage: storage, Step: 10}
 
-	mux.Handle("/stylesheets/", fs)
-	mux.HandleFunc("/", handlers.handle)
+	mux.Handle("../stylesheets/", fs)
+	mux.HandleFunc("/", handlers.Handle)
 
 	port := ":9000"
 	log.Printf("Listening http://localhost:%v", port)
