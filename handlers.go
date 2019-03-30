@@ -135,15 +135,12 @@ func (h *Handlers) Handle(w http.ResponseWriter, r *http.Request) {
 
 	switch {
 	case path == "/" || path == "":
-		log.Println("matched index")
 		h.index(w, r)
 	case (path == "/create/" || path == "/create"):
 		h.handleCreate(w, r)
 	case edit.MatchString(path):
-		log.Println("matched edit")
 		h.handleEdit(w, r)
 	case copy.MatchString(path):
-		log.Println("matched copy")
 		h.handleCopy(w, r)
 	case delete.MatchString(path):
 		h.handleDelete(w, r)
@@ -172,7 +169,6 @@ func (h *Handlers) getRep(id string) (*Repetition, error) {
 }
 
 func (h *Handlers) handleErrors(w http.ResponseWriter, r *http.Request, err error, code int) {
-	log.Printf("returning error response because %v", fmt.Errorf(err.Error()))
 	http.Error(w, err.Error(), code)
 	return
 
@@ -390,7 +386,6 @@ func (h *Handlers) handleCreatePost(w http.ResponseWriter, r *http.Request, exis
 		}
 
 		if len(value) > 0 {
-			log.Println(key, value)
 			switch key {
 			case (category):
 				repetition.Category = value[0]

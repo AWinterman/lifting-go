@@ -31,24 +31,26 @@ const (
             DROP TABLE IF EXISTS workout;
         `
 	namedInsert = `INSERT INTO workout(
-            exercise, effort, volume, weight, duration, session_date, units, failure, category, comment
-            ) values (
-            :exercise, :effort, :volume, :weight, :duration, :session_date, :units, :failure, :category, :comment
-			)`
-
+            exercise, effort, volume, weight, duration, session_date, units, 
+			failure, category, comment, sets
+        ) values (
+            :exercise, :effort, :volume, :weight, :duration, :session_date, 
+			:units, :failure, :category, :comment, :sets
+		)`
 	//
 	namedDelete = `DELETE FROM workout WHERE id = :id`
 	namedUpdate = `UPDATE workout
 			SET exercise = :exercise,
-				effort = :effort,
-				volume = :volume,
+				 effort = :effort,
+				 volume = :volume,
 				 weight = :weight, 
 				 duration = :duration, 
 				 session_date = :session_date, 
 				 units = :units, 
 				 failure = :failure, 
 				 category = :category,
-				 comment = :comment
+				 comment = :comment,
+				 sets = :sets
 			WHERE
 				id = :id
 
@@ -60,17 +62,17 @@ const (
 
 	getlast = `
             SELECT 
-            id, exercise, effort, volume, weight, duration, session_date, units, failure, category, comment
+            id, exercise, effort, volume, weight, duration, session_date, units, failure, category, comment, sets
             FROM workout 
             ORDER BY session_date desc, id desc LIMIT :count OFFSET :offset`
 	getBetween = `
             SELECT 
-            id, exercise, effort, volume, weight, duration, session_date, units, failure, category, comment
+            id, exercise, effort, volume, weight, duration, session_date, units, failure, category, comment, sets
             FROM workout WHERE session_date BETWEEN :start and :end
             ORDER BY session_date DESC, id DESC`
 	getByID = `
             SELECT 
-            id, exercise, effort, volume, weight, duration, session_date, units, failure, category, comment
+            id, exercise, effort, volume, weight, duration, session_date, units, failure, category, comment, sets
             FROM workout WHERE id = :id`
 	getByCategory = `
 			WITH vars AS (SELECT :category as category)
@@ -158,11 +160,13 @@ func (s *LiftingStorage) Load(repetitions []lifting.Repetition) error {
 		}
 
 		if workout.ID == nil {
+			fmt.Println(workout.Sets)
 			_, err = tx.NamedExec(
 				namedInsert,
 				&workout,
 			)
 		} else {
+			fmt.Println(workout.Sets)
 			_, err = tx.NamedExec(
 				namedUpdate,
 				&workout,

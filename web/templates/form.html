@@ -48,6 +48,12 @@
                         {{ if .Repetition.Volume }}value="{{.Repetition.Volume }}" {{ end }} {{ end }}>
                     <span></span>
                 </label>
+                <label>
+                    <div class="left">sets</div>
+                    <input type="number" min="0" placeholder="1" name="Sets" {{ if .Repetition }}
+                        {{ if .Repetition.Sets }}value="{{.Repetition.Sets }}" {{ end }} {{ end }}>
+                    <span><!-- errors will go here --></span>
+                </label>
 
                 <label>
                     <div class="left">weight</div>

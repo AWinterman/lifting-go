@@ -5,11 +5,11 @@ import (
 	"net/http"
 
 	"github.com/awinterman/lifting"
-	"github.com/awinterman/lifting/sqlite"
+	"github.com/awinterman/lifting/postgres"
 )
 
 func main() {
-	var storage, err = sqlite.CreateStorage(".lift.sqlite", nil)
+	var storage, err = postgres.CreateStorage("user=andrew password=andrew dbname=andrew", nil)
 
 	if err != nil {
 		panic(err)
