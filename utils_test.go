@@ -87,31 +87,8 @@ func TestGrouping(t *testing.T) {
 		},
 	}
 
-	result := group(reps)
-	twentyfifth, present := result[civil.Date{Year: 2018, Month: 12, Day: 25}]
+	group(reps)
 
-	if !present {
-		t.Fatal("no twenty fifth", result)
-	}
 
-	squat, present := twentyfifth["squat"]
-
-	if !present {
-		t.Fatal("no squat", twentyfifth)
-	}
-
-	if len(squat) != 1 {
-		t.Fatal("wrong number of squats", squat)
-	}
-
-	overhead, present := twentyfifth["overhead press"]
-
-	if !present {
-		t.Fatal("no overhead", twentyfifth)
-	}
-
-	if len(overhead) != 1 {
-		t.Fatal("wrong number of overheads", overhead)
-	}
 
 }

@@ -3,6 +3,7 @@ package lifting
 import (
 	"sort"
 	"strconv"
+	"time"
 
 	"cloud.google.com/go/civil"
 )
@@ -26,6 +27,12 @@ type Category struct {
 type Group struct {
 	Date       civil.Date
 	Categories []Category
+}
+
+// compute the week day for the group
+func (r *Group) Weekday() string {
+	date := time.Date(r.Date.Year, r.Date.Month, r.Date.Day, 0, 0, 0, 0, time.UTC)
+	return date.Weekday().String()
 }
 
 func mapGroup(reps []Repetition) map[civil.Date]map[string][]Repetition {
