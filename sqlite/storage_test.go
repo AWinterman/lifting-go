@@ -1,9 +1,10 @@
-package lifting
+package sqlite
 
 import (
 	"fmt"
 	"testing"
 
+	"github.com/awinterman/lifting"
 	"cloud.google.com/go/civil"
 )
 
@@ -18,8 +19,8 @@ func TestSqlite(t *testing.T) {
 		t.Error(err)
 	}
 
-	reps := []Repetition{
-		Repetition{
+	reps := []lifting.Repetition{
+		lifting.Repetition{
 			Exercise:    "run",
 			Effort:      70,
 			Volume:      2,
@@ -30,7 +31,7 @@ func TestSqlite(t *testing.T) {
 			Failure:     false,
 			Category:    "aerobic/recovery",
 		},
-		Repetition{
+		lifting.Repetition{
 			Exercise:    "squat",
 			Effort:      70,
 			Volume:      5,
@@ -40,7 +41,7 @@ func TestSqlite(t *testing.T) {
 			Failure:     false,
 			Category:    "strength",
 		},
-		Repetition{
+		lifting.Repetition{
 			Exercise:    "squat",
 			Effort:      70,
 			Volume:      5,
@@ -50,7 +51,7 @@ func TestSqlite(t *testing.T) {
 			Failure:     false,
 			Category:    "strength",
 		},
-		Repetition{
+		lifting.Repetition{
 			Exercise:    "squat",
 			Effort:      70,
 			Volume:      5,
@@ -60,11 +61,11 @@ func TestSqlite(t *testing.T) {
 			Failure:     false,
 			Category:    "strength",
 		},
-		Repetition{
+		lifting.Repetition{
 			Exercise: "yoga",
 			Category: "mobility",
 		},
-		Repetition{
+		lifting.Repetition{
 			Exercise:    "overhead press",
 			Effort:      90,
 			Volume:      5,
@@ -74,7 +75,7 @@ func TestSqlite(t *testing.T) {
 			Failure:     false,
 			Category:    "strength",
 		},
-		Repetition{
+		lifting.Repetition{
 			Exercise:    "overhead press",
 			Effort:      90,
 			Volume:      5,
@@ -84,7 +85,7 @@ func TestSqlite(t *testing.T) {
 			Failure:     false,
 			Category:    "strength",
 		},
-		Repetition{
+		lifting.Repetition{
 			Exercise:    "overhead press",
 			Effort:      90,
 			Volume:      5,

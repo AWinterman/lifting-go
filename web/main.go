@@ -5,10 +5,11 @@ import (
 	"net/http"
 
 	"github.com/awinterman/lifting"
+	"github.com/awinterman/lifting/sqlite"
 )
 
 func main() {
-	var storage, err = lifting.CreateStorage(".lift.sqlite", nil)
+	var storage, err = sqlite.CreateStorage(".lift.sqlite", nil)
 
 	if err != nil {
 		panic(err)

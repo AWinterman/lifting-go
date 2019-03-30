@@ -1,10 +1,11 @@
-package lifting
+package sqlite
 
 import (
 	"fmt"
 
 	"cloud.google.com/go/civil"
 	"github.com/jmoiron/sqlx"
+	"github.com/awinterman/lifting"
 	_ "github.com/mattn/go-sqlite3" // how they told me to do it i guess
 )
 
@@ -130,14 +131,14 @@ func (s *SqliteStorage) Drop() error {
 }
 
 //Load the repetitions into the database
-func (s *SqliteStorage) Load(repetitions []Repetition) error {
+func (s *SqliteStorage) Load(repetitions []lifting.Repetition) error {
 	tx, err := s.db.Beginx()
 	if err != nil {
 		return err
 	}
 
 	for _, rep := range repetitions {
-		workout := repetitionToWorkout(rep)
+		workout := lifting.RepetitionToWorkout(rep)
 		var err error
 
 		if workout.ID == nil {
@@ -167,7 +168,7 @@ func (s *SqliteStorage) Delete(id int) error {
 		return err
 	}
 
-	workout := WorkoutRow{ID: &id}
+	workout := lifting.WorkoutRow{ID: &id}
 
 	_, err = tx.NamedExec(
 		namedDelete,
@@ -181,11 +182,11 @@ func (s *SqliteStorage) Delete(id int) error {
 	return tx.Commit()
 }
 
-func (s *SqliteStorage) getCollectionWithStruct(query string, arg interface{}) ([]Repetition, error) {
+func (s *SqliteStorage) getCollectionWithStruct(query string, arg interface{}) ([]lifting.Repetition, error) {
 	var (
-		rs []Repetition
-		w  WorkoutRow
-		r  Repetition
+		rs []lifting.Repetition
+		w  lifting.WorkoutRow
+		r  lifting.Repetition
 	)
 
 	rows, err := s.db.NamedQuery(query, arg)
@@ -198,7 +199,7 @@ func (s *SqliteStorage) getCollectionWithStruct(query string, arg interface{}) (
 		if err != nil {
 			return rs, err
 		}
-		r, err = workoutToRepetition(w)
+		r, err = lifting.WorkoutToRepetition(w)
 		rs = append(rs, r)
 		if err != nil {
 			return rs, err
@@ -208,16 +209,16 @@ func (s *SqliteStorage) getCollectionWithStruct(query string, arg interface{}) (
 	return rs, nil
 }
 
-func (s *SqliteStorage) getCollection(query string, args ...interface{}) ([]Repetition, error) {
-	var rs []Repetition
-	ws := []WorkoutRow{}
+func (s *SqliteStorage) getCollection(query string, args ...interface{}) ([]lifting.Repetition, error) {
+	var rs []lifting.Repetition
+	ws := []lifting.WorkoutRow{}
 	err := s.db.Select(&ws, query, args...)
 	if err != nil {
 		panic(err)
 	}
-	rs = make([]Repetition, len(ws))
+	rs = make([]lifting.Repetition, len(ws))
 	for i, w := range ws {
-		rs[i], err = workoutToRepetition(w)
+		rs[i], err = lifting.WorkoutToRepetition(w)
 		if err != nil {
 			return rs, err
 		}
@@ -256,19 +257,19 @@ func (s *SqliteStorage) GetUniqueExercises() ([]string, error) {
 }
 
 //GetByCategory retrieves reps in a given category
-func (s *SqliteStorage) GetByCategory(category string, count, offset int) ([]Repetition, error) {
-	return s.getCollectionWithStruct(getByCategory, CategoryQuery{
+func (s *SqliteStorage) GetByCategory(category string, count, offset int) ([]lifting.Repetition, error) {
+	return s.getCollectionWithStruct(getByCategory, lifting.CategoryQuery{
 		Category: category, Count: count, Offset: offset,
 	})
 }
 
 // GetLast retrieves data in order
-func (s *SqliteStorage) GetLast(count, offset int) ([]Repetition, error) {
+func (s *SqliteStorage) GetLast(count, offset int) ([]lifting.Repetition, error) {
 	return s.getCollection(getlast, count, offset)
 }
 
 // GetByID finds a particular repetition
-func (s *SqliteStorage) GetByID(id int) (*Repetition, error) {
+func (s *SqliteStorage) GetByID(id int) (*lifting.Repetition, error) {
 	reps, err := s.getCollection(getByID, id)
 
 	if err != nil {
@@ -287,7 +288,7 @@ func (s *SqliteStorage) GetByID(id int) (*Repetition, error) {
 }
 
 // GetBetween returns the reps between the start and end date.
-func (s *SqliteStorage) GetBetween(start, end civil.Date) ([]Repetition, error) {
+func (s *SqliteStorage) GetBetween(start, end civil.Date) ([]lifting.Repetition, error) {
 	return s.getCollection(getBetween, start, end)
 }
 

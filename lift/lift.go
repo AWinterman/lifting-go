@@ -1,11 +1,11 @@
 package main
 
 import (
-	"github.com/awinterman/lifting"
+	"github.com/awinterman/lifting/sqlite"
 	"github.com/spf13/cobra"
 )
 
-var storage, err = lifting.CreateStorage(".lift.sqlite", nil)
+var storage, err = sqlite.CreateStorage(".lift.sqlite", nil)
 
 func main() {
 	if (err != nil) {

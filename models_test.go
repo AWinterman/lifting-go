@@ -30,13 +30,13 @@ func TestConversion(t *testing.T) {
 		Category:    sql.NullString{String: "strength", Valid: true},
 	}
 
-	workout := repetitionToWorkout(r)
+	workout := RepetitionToWorkout(r)
 
 	if workout != expected {
 		t.Fatal("mimsatch", fmt.Sprintf("expected %#v", expected), fmt.Sprintf("found %#v", workout))
 	}
 
-	back, err := workoutToRepetition(workout)
+	back, err := WorkoutToRepetition(workout)
 
 	if err != nil {
 		t.Fatal(err)

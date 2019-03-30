@@ -71,7 +71,8 @@ func ParseSessionDateString(date string) (civil.Date, error) {
 	return civil.ParseDate(date)
 }
 
-func repetitionToWorkout(r Repetition) WorkoutRow {
+// RepetitionToWorkout transforms from a repetition to a workout row.
+func RepetitionToWorkout(r Repetition) WorkoutRow {
 	effort := sql.NullInt64{Valid: false}
 	volume := sql.NullFloat64{Valid: false}
 	weight := sql.NullInt64{Valid: false}
@@ -115,7 +116,8 @@ func repetitionToWorkout(r Repetition) WorkoutRow {
 	}
 }
 
-func workoutToRepetition(w WorkoutRow) (Repetition, error) {
+// WorkoutToRepetition converts from workout to repetition.
+func WorkoutToRepetition(w WorkoutRow) (Repetition, error) {
 	var (
 		rep         Repetition
 		effort      int
