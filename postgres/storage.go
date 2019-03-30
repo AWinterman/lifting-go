@@ -1,28 +1,29 @@
-package sqlite
+package postgres
 
 import (
 	"fmt"
 
 	"cloud.google.com/go/civil"
-	"github.com/jmoiron/sqlx"
 	"github.com/awinterman/lifting"
-	_ "github.com/mattn/go-sqlite3" // how they told me to do it i guess
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq" // its driver
 )
 
 const (
 	workoutSchema = `
             CREATE TABLE IF NOT EXISTS workout (
-               id integer primary key,
+               id serial primary key,
                exercise varchar NOT NULL,
                effort decimal,
                volume int,
+			   sets int,
                weight decimal,
                duration interval,
                session_date date NOT NULL,
                failure boolean default false,
-               units str NOT NULL,
-			   category text,
-			   comment text
+               units varchar,
+			   category varchar,
+			   comment varchar
             );
         `
 
@@ -55,22 +56,22 @@ const (
 
 	uniquecategory = `SELECT DISTINCT category FROM workout`
 	uniqueExercise = `SELECT DISTINCT exercise FROM workout`
-	uniqueUnits    = `SELECT DISTINCT units FROM workout WHERE units != ""`
+	uniqueUnits    = `SELECT DISTINCT units FROM workout WHERE units is not null and units != ''`
 
 	getlast = `
             SELECT 
             id, exercise, effort, volume, weight, duration, session_date, units, failure, category, comment
             FROM workout 
-            ORDER BY session_date desc, id desc LIMIT ? OFFSET ?`
+            ORDER BY session_date desc, id desc LIMIT :count OFFSET :offset`
 	getBetween = `
             SELECT 
             id, exercise, effort, volume, weight, duration, session_date, units, failure, category, comment
-            FROM workout WHERE session_date BETWEEN ? and ? 
+            FROM workout WHERE session_date BETWEEN :start and :end
             ORDER BY session_date DESC, id DESC`
 	getByID = `
             SELECT 
             id, exercise, effort, volume, weight, duration, session_date, units, failure, category, comment
-            FROM workout WHERE id = ?`
+            FROM workout WHERE id = :id`
 	getByCategory = `
 			WITH vars AS (SELECT :category as category)
             SELECT 
@@ -86,52 +87,64 @@ const (
 				false as failure,
 				workout.category as category
 			FROM workout INNER JOIN vars ON(workout.category LIKE '%'||vars.category||'%')
-			GROUP BY exercise, workout.category, units
+			GROUP BY exercise, vars.category, workout.category, units
 			ORDER BY 
 				workout.category = vars.category, workout.category like vars.category||'%', workout.category like '%'||vars.category||'%',
 				session_date DESC, 
 				id DESC 
-			LIMIT :count OFFSET :offset`
+			LIMIT :count OFFSET :offset
+	`
 )
 
-// SqliteStorage is a sqlite implementation of the Storage interface
-type SqliteStorage struct {
-	Path string
-	db   *sqlx.DB
+type between struct {
+	Start, End civil.Date
+}
+
+type byID struct {
+	ID int
+}
+
+type pagination struct {
+	Count, Offset int
+}
+
+// LiftingStorage is a sqlite implementation of the Storage interface
+type LiftingStorage struct {
+	Connection string
+	db         *sqlx.DB
 }
 
 // CreateStorage sets up the database resources
-func CreateStorage(Path string, db *sqlx.DB) (*SqliteStorage, error) {
-	var s = SqliteStorage{Path: Path, db: db}
+func CreateStorage(connection string, db *sqlx.DB) (*LiftingStorage, error) {
+	var s = LiftingStorage{Connection: connection, db: db}
 
 	if s.db == nil {
-		db, err := sqlx.Connect("sqlite3", s.Path)
+		db, err := sqlx.Connect("postgres", s.Connection)
+		if err != nil {
+			return nil, err
+		}
 		s.db = db
-		s.db.Ping()
+		err = s.db.Ping()
 		if err != nil {
 			return nil, err
 		}
-		stmt, err := s.db.Prepare(workoutSchema)
+		s.db.MustExec(workoutSchema)
 		if err != nil {
 			return nil, err
 		}
-		_, err = stmt.Exec()
-		if err != nil {
-			return nil, err
-		}
-		return &s, stmt.Close()
+		return &s, nil
 	}
 	return &s, nil
 }
 
 // Drop drops the database
-func (s *SqliteStorage) Drop() error {
+func (s *LiftingStorage) Drop() error {
 	_, err := s.db.Exec(drop)
 	return err
 }
 
 //Load the repetitions into the database
-func (s *SqliteStorage) Load(repetitions []lifting.Repetition) error {
+func (s *LiftingStorage) Load(repetitions []lifting.Repetition) error {
 	tx, err := s.db.Beginx()
 	if err != nil {
 		return err
@@ -165,7 +178,7 @@ func (s *SqliteStorage) Load(repetitions []lifting.Repetition) error {
 }
 
 // Delete removes the corresponding database row
-func (s *SqliteStorage) Delete(id int) error {
+func (s *LiftingStorage) Delete(id int) error {
 	tx, err := s.db.Beginx()
 	if err != nil {
 		return err
@@ -185,7 +198,7 @@ func (s *SqliteStorage) Delete(id int) error {
 	return tx.Commit()
 }
 
-func (s *SqliteStorage) getCollectionWithStruct(query string, arg interface{}) ([]lifting.Repetition, error) {
+func (s *LiftingStorage) getCollectionWithStruct(query string, arg interface{}) ([]lifting.Repetition, error) {
 	var (
 		rs []lifting.Repetition
 		w  lifting.WorkoutRow
@@ -212,25 +225,8 @@ func (s *SqliteStorage) getCollectionWithStruct(query string, arg interface{}) (
 	return rs, nil
 }
 
-func (s *SqliteStorage) getCollection(query string, args ...interface{}) ([]lifting.Repetition, error) {
-	var rs []lifting.Repetition
-	ws := []lifting.WorkoutRow{}
-	err := s.db.Select(&ws, query, args...)
-	if err != nil {
-		panic(err)
-	}
-	rs = make([]lifting.Repetition, len(ws))
-	for i, w := range ws {
-		rs[i], err = lifting.WorkoutToRepetition(w)
-		if err != nil {
-			return rs, err
-		}
-	}
-	return rs, nil
-}
-
 //GetUniqueCategories retrieves what categories have been input
-func (s *SqliteStorage) GetUniqueCategories() ([]string, error) {
+func (s *LiftingStorage) GetUniqueCategories() ([]string, error) {
 	categorys := make([]string, 0)
 	err := s.db.Select(&categorys, uniquecategory)
 	if err != nil {
@@ -240,7 +236,7 @@ func (s *SqliteStorage) GetUniqueCategories() ([]string, error) {
 }
 
 //GetUniqueUnits retrieves what categories have been input
-func (s *SqliteStorage) GetUniqueUnits() ([]string, error) {
+func (s *LiftingStorage) GetUniqueUnits() ([]string, error) {
 	categorys := make([]string, 0)
 	err := s.db.Select(&categorys, uniqueUnits)
 	if err != nil {
@@ -250,7 +246,7 @@ func (s *SqliteStorage) GetUniqueUnits() ([]string, error) {
 }
 
 //GetUniqueExercises retrieves what Exercises have been input
-func (s *SqliteStorage) GetUniqueExercises() ([]string, error) {
+func (s *LiftingStorage) GetUniqueExercises() ([]string, error) {
 	r := make([]string, 0)
 	err := s.db.Select(&r, uniqueExercise)
 	if err != nil {
@@ -260,20 +256,20 @@ func (s *SqliteStorage) GetUniqueExercises() ([]string, error) {
 }
 
 //GetByCategory retrieves reps in a given category
-func (s *SqliteStorage) GetByCategory(category string, count, offset int) ([]lifting.Repetition, error) {
+func (s *LiftingStorage) GetByCategory(category string, count, offset int) ([]lifting.Repetition, error) {
 	return s.getCollectionWithStruct(getByCategory, lifting.CategoryQuery{
 		Category: category, Count: count, Offset: offset,
 	})
 }
 
 // GetLast retrieves data in order
-func (s *SqliteStorage) GetLast(count, offset int) ([]lifting.Repetition, error) {
-	return s.getCollection(getlast, count, offset)
+func (s *LiftingStorage) GetLast(count, offset int) ([]lifting.Repetition, error) {
+	return s.getCollectionWithStruct(getlast, pagination{Count: count, Offset: offset})
 }
 
 // GetByID finds a particular repetition
-func (s *SqliteStorage) GetByID(id int) (*lifting.Repetition, error) {
-	reps, err := s.getCollection(getByID, id)
+func (s *LiftingStorage) GetByID(id int) (*lifting.Repetition, error) {
+	reps, err := s.getCollectionWithStruct(getByID, byID{ID: id})
 
 	if err != nil {
 		return nil, err
@@ -291,8 +287,8 @@ func (s *SqliteStorage) GetByID(id int) (*lifting.Repetition, error) {
 }
 
 // GetBetween returns the reps between the start and end date.
-func (s *SqliteStorage) GetBetween(start, end civil.Date) ([]lifting.Repetition, error) {
-	return s.getCollection(getBetween, start, end)
+func (s *LiftingStorage) GetBetween(start, end civil.Date) ([]lifting.Repetition, error) {
+	return s.getCollectionWithStruct(getBetween, between{Start: start, End: end})
 }
 
 func checkErr(err error) {

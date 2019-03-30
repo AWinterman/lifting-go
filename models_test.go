@@ -25,12 +25,16 @@ func TestConversion(t *testing.T) {
 		Volume:      sql.NullFloat64{Float64: 5, Valid: true},
 		Weight:      sql.NullInt64{Int64: 180, Valid: true},
 		SessionDate: "2018-12-26",
-		Units:       "lbs",
+		Units:       sql.NullString{String: "lbs", Valid: true},
 		Failure:     false,
 		Category:    sql.NullString{String: "strength", Valid: true},
 	}
 
-	workout := RepetitionToWorkout(r)
+	workout, err := RepetitionToWorkout(r)
+
+	if err != nil {
+		t.Fatal("Failed to translate to workout", err, r)
+	}
 
 	if workout != expected {
 		t.Fatal("mimsatch", fmt.Sprintf("expected %#v", expected), fmt.Sprintf("found %#v", workout))

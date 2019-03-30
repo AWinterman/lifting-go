@@ -29,7 +29,7 @@ type Group struct {
 	Categories []Category
 }
 
-// compute the week day for the group
+// Weekday computes the weekday for the group's Date
 func (r *Group) Weekday() string {
 	date := time.Date(r.Date.Year, r.Date.Month, r.Date.Day, 0, 0, 0, 0, time.UTC)
 	return date.Weekday().String()
@@ -57,6 +57,7 @@ func mapGroup(reps []Repetition) map[civil.Date]map[string][]Repetition {
 
 }
 
+// Groups is a collection of Group.
 type Groups []Group
 
 func (s Groups) Len() int {

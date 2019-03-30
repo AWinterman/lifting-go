@@ -1,6 +1,7 @@
 package lifting
 
 import (
+	"fmt"
 	"cloud.google.com/go/civil"
 	"database/sql"
 	"time"
@@ -48,7 +49,7 @@ type (
 		Category    sql.NullString
 		Elapsed     sql.NullString `db:"duration"`
 		SessionDate string         `db:"session_date"`
-		Units       string
+		Units       sql.NullString
 		Failure     bool
 		Comment     sql.NullString
 		Sets        int
@@ -72,13 +73,17 @@ func ParseSessionDateString(date string) (civil.Date, error) {
 }
 
 // RepetitionToWorkout transforms from a repetition to a workout row.
-func RepetitionToWorkout(r Repetition) WorkoutRow {
+func RepetitionToWorkout(r Repetition) (WorkoutRow, error) {
 	effort := sql.NullInt64{Valid: false}
 	volume := sql.NullFloat64{Valid: false}
 	weight := sql.NullInt64{Valid: false}
 	Category := sql.NullString{Valid: false}
 	elapsed := sql.NullString{Valid: false}
 	comment := sql.NullString{Valid: false}
+	units := sql.NullString{Valid: false}
+
+	var nullSessionDate civil.Date
+
 	if r.Effort != 0 {
 		effort = sql.NullInt64{Int64: int64(r.Effort), Valid: true}
 	}
@@ -100,6 +105,15 @@ func RepetitionToWorkout(r Repetition) WorkoutRow {
 		comment = sql.NullString{String: r.Comment, Valid: true}
 	}
 
+	if r.Units != "" {
+		units = sql.NullString{String: r.Units, Valid: true}
+	}
+
+	if r.SessionDate == nullSessionDate {
+		return WorkoutRow{}, fmt.Errorf("session date must be set on repetition %v", r)
+	}
+
+
 	return WorkoutRow{
 		ID:          r.ID,
 		Exercise:    r.Exercise,
@@ -108,12 +122,12 @@ func RepetitionToWorkout(r Repetition) WorkoutRow {
 		Weight:      weight,
 		Elapsed:     elapsed,
 		SessionDate: r.SessionDate.String(),
-		Units:       r.Units,
+		Units:       units,
 		Failure:     r.Failure,
 		Category:    Category,
 		Sets:        r.Sets,
 		Comment:     comment,
-	}
+	}, nil
 }
 
 // WorkoutToRepetition converts from workout to repetition.
@@ -128,6 +142,7 @@ func WorkoutToRepetition(w WorkoutRow) (Repetition, error) {
 		Category    string
 		err         error
 		comment     string
+		units       string
 	)
 
 	sessionDate, err = ParseSessionDateString(w.SessionDate)
@@ -162,6 +177,10 @@ func WorkoutToRepetition(w WorkoutRow) (Repetition, error) {
 		comment = w.Comment.String
 	}
 
+	if w.Units.Valid {
+		units = w.Units.String
+	}
+
 	rep = Repetition{
 		ID:          w.ID,
 		Exercise:    w.Exercise,
@@ -170,7 +189,7 @@ func WorkoutToRepetition(w WorkoutRow) (Repetition, error) {
 		Weight:      weight,
 		Elapsed:     elapsed,
 		SessionDate: sessionDate,
-		Units:       w.Units,
+		Units:       units,
 		Failure:     w.Failure,
 		Category:    Category,
 		Sets:        w.Sets,

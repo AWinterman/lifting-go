@@ -369,6 +369,7 @@ func (h *Handlers) handleCreateGet(w http.ResponseWriter, r *http.Request) {
 func (h *Handlers) handleCreatePost(w http.ResponseWriter, r *http.Request, existing *Repetition) {
 	var (
 		err error
+		sd civil.Date
 	)
 
 	repetition := &Repetition{}
@@ -394,7 +395,8 @@ func (h *Handlers) handleCreatePost(w http.ResponseWriter, r *http.Request, exis
 			case (category):
 				repetition.Category = value[0]
 			case (sessionDate):
-				repetition.SessionDate, err = civil.ParseDate(value[0])
+				sd, err = ParseSessionDateString(value[0])
+				repetition.SessionDate = sd
 			case (exercise):
 				repetition.Exercise = value[0]
 			case (volume):
